@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f0c29">
+<title>反差天赋盲盒</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif; }
+body { background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%); color: #fff; display: flex;
+    justify-content: center; align-items: center; min-height: 100vh; min-height: 100dvh; padding: 15px; }
+#app { background: rgba(20,20,30,.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,.1); width: 100%; max-width: 420px; border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.6); overflow: hidden; padding: 25px 20px 18px; }
+.screen { display: none; animation: fadeIn .5s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.progress-container { width: 100%; height: 3px; background: #333; border-radius: 2px; margin-bottom: 14px; display: none; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #00f2fe, #4facfe); border-radius: 2px; width: 0; transition: width .3s ease; }
+.qno { font-size: 12px; color: #7d86a8; margin-bottom: 10px; letter-spacing: 1px; }
+
+.title { text-align: center; font-size: 26px; font-weight: 900; background: linear-gradient(90deg, #00f2fe, #4facfe);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 14px; letter-spacing: 2px; }
+.subtitle { text-align: center; font-size: 13px; color: #aaa; margin-bottom: 22px; line-height: 1.9; }
+.facts { display: flex; justify-content: center; gap: 8px; margin-bottom: 22px; }
+.facts span { font-size: 12px; color: #4facfe; border: 1px solid rgba(79,172,254,.4); border-radius: 12px; padding: 3px 10px; }
+.btn { display: block; width: 100%; background: linear-gradient(90deg, #4facfe, #00f2fe); color: #001; border: none;
+    padding: 15px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: all .2s; text-align: center; margin-top: 12px; }
+.btn:active { transform: scale(.97); }
+.btn.ghost { background: transparent; color: #4facfe; border: 1px solid rgba(79,172,254,.5); }
+
+.question-title { font-size: 17px; font-weight: bold; margin-bottom: 18px; line-height: 1.55; color: #eee; }
+.options { display: flex; flex-direction: column; gap: 11px; }
+.option { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); padding: 14px; border-radius: 10px;
+    font-size: 14px; cursor: pointer; transition: all .2s; color: #ccc; line-height: 1.45; }
+.option:active { background: rgba(255,255,255,.1); }
+.option.selected { background: rgba(79,172,254,.2); border-color: #4facfe; color: #fff; }
+
+.loading-container { text-align: center; padding: 44px 0; }
+.radar { width: 64px; height: 64px; border: 2px solid #4facfe; border-radius: 50%; margin: 0 auto 22px; position: relative; overflow: hidden; animation: pulse 1.5s infinite; }
+.radar::after { content: ''; position: absolute; inset: 0; background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, rgba(79,172,254,.6) 360deg); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.loading-text { color: #4facfe; font-size: 14px; letter-spacing: 1px; }
+
+.result-header { text-align: center; margin-bottom: 14px; }
+.result-badge { display: inline-block; background: #2a2a3a; color: #00f2fe; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+.rarity { display: inline-block; margin-left: 6px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 900; letter-spacing: 1px; }
+.rarity.SSR { background: linear-gradient(90deg, #ffd34e, #ff8a3d); color: #3a1d00; }
+.rarity.SR  { background: linear-gradient(90deg, #c58bff, #7f8cff); color: #190a38; }
+.rarity.R   { background: #3b4261; color: #cfd6ff; }
+.reveal-tag { font-size: 12px; color: #7f8cff; margin: 0 0 6px 2px; }
+.talent-box { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 14px 15px; margin-bottom: 10px; }
+.talent-box .theme { float: right; font-size: 11px; color: #8a93b8; border: 1px solid rgba(255,255,255,.12); padding: 1px 8px; border-radius: 10px; }
+.talent-idiom { font-size: 21px; font-weight: 900; color: #00f2fe; display: inline-block; margin-bottom: 8px; border-bottom: 2px dashed #555; padding-bottom: 2px; }
+.talent-desc { font-size: 14px; color: #bbb; line-height: 1.55; }
+.vs-container { text-align: center; margin: -2px 0 6px; position: relative; z-index: 2; }
+.vs-badge { display: inline-block; background: linear-gradient(90deg, #4facfe, #00f2fe); color: #001; font-weight: bold; font-size: 13px; width: 32px; height: 32px; line-height: 32px; border-radius: 50%; box-shadow: 0 0 10px rgba(79,172,254,.5); }
+.combo-analysis { background: rgba(79,172,254,.1); border-left: 4px solid #4facfe; padding: 14px; border-radius: 0 10px 10px 0; margin: 12px 0 6px; }
+.combo-analysis h4 { color: #4facfe; font-size: 15px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.combo-analysis h4 em { font-style: normal; font-size: 12px; color: #00f2fe; border: 1px solid rgba(0,242,254,.4); padding: 1px 8px; border-radius: 10px; }
+.combo-analysis p { color: #ddd; font-size: 14px; line-height: 1.75; white-space: pre-line; }
+.row2 { display: flex; gap: 10px; }
+.row2 .btn { flex: 1; }
+.disclaimer { text-align: center; font-size: 11px; color: #667; margin-top: 14px; }
+
+#share-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.82); z-index: 99; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+#share-mask.show { display: flex; }
+#share-img { max-width: 100%; max-height: 78vh; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+#share-mask p { color: #fff; font-size: 14px; margin: 14px 0 10px; }
+#share-mask button { background: #fff; border: none; border-radius: 20px; padding: 9px 26px; font-size: 14px; color: #302b63; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="progress-container" id="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+  <div class="screen active" id="start-screen">
+    <div class="title">反差天赋盲盒</div>
+    <div class="subtitle">
+      50 种奇葩天赋随机掉落。<br>
+      每个人体内，都住着两种互相打架的超能力。<br>
+      测出你专属的「双拼矛盾体」。
+    </div>
+    <div class="facts"><span>10 道题</span><span>约 1 分钟</span><span>50 种天赋</span></div>
+    <button class="btn" id="btn-start">开始抽取</button>
+    <div class="disclaimer">本测试仅供娱乐，结果无任何科学依据</div>
+  </div>
+
+  <div class="screen" id="quiz-screen">
+    <div class="qno" id="qno"></div>
+    <div class="question-title" id="question-title"></div>
+    <div class="options" id="options-container"></div>
+  </div>
+
+  <div class="screen" id="loading-screen">
+    <div class="loading-container">
+      <div class="radar"></div>
+      <div class="loading-text" id="loading-text">正在扫描反差基因...</div>
+    </div>
+  </div>
+
+  <div class="screen" id="result-screen">
+    <div class="result-header">
+      <span class="result-badge">双拼天赋已生成</span><span class="rarity R" id="rarity">R</span>
+    </div>
+    <div class="reveal-tag">👀 别人眼里的你</div>
+    <div class="talent-box">
+      <span class="theme" id="theme1"></span>
+      <div class="talent-idiom" id="talent1-idiom"></div>
+      <div class="talent-desc" id="talent1-desc"></div>
+    </div>
+    <div class="vs-container"><div class="vs-badge">VS</div></div>
+    <div class="reveal-tag">🫥 只有你自己知道的你</div>
+    <div class="talent-box">
+      <span class="theme" id="theme2"></span>
+      <div class="talent-idiom" id="talent2-idiom"></div>
+      <div class="talent-desc" id="talent2-desc"></div>
+    </div>
+    <div class="combo-analysis">
+      <h4><span>🔮 反差解析报告</span><em id="contrast">反差指数 0%</em></h4>
+      <p id="combo-desc"></p>
+    </div>
+    <div class="row2">
+      <button class="btn ghost" id="btn-reroll">🎲 换个反差</button>
+      <button class="btn" id="btn-share">📸 分享图</button>
+    </div>
+    <button class="btn ghost" id="btn-restart">重新测试</button>
+    <div class="disclaimer">本测试仅供娱乐，结果无任何科学依据</div>
+  </div>
+</div>
+
+<div id="share-mask">
+  <img id="share-img" alt="分享图">
+  <p>长按图片保存，发给朋友看看谁的反差更大～</p>
+  <button id="share-close">关闭</button>
+</div>
+
+<script>
+// ===== 可自定义配置 =====
+const CONFIG = {
+  brand: ""   // 例如 "小红书 @你的昵称"，会显示在分享图底部；留空则显示默认文案
+};
+
+const $ = id => document.getElementById(id);
+const SCREENS = ['start-screen', 'quiz-screen', 'loading-screen', 'result-screen'];
+function show(id) { SCREENS.forEach(s => $(s).classList.toggle('active', s === id)); window.scrollTo(0, 0); }
+
+function hash32(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  h ^= h >>> 16; h = Math.imul(h, 2246822507) >>> 0;
+  h ^= h >>> 13; h = Math.imul(h, 3266489909) >>> 0;
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+// ===== 50 个天赋：[名称, 主题, 极性(0/1), 描述, 短语(用于解析)] =====
+// 每个主题 5 个极性0 + 5 个极性1，同一位置互为"最强反差搭档"
+const THEMES = { act: '行动力', soc: '社交场', emo: '情绪面', mind: '思维脑', life: '生活观' };
+const RAW = [
+  // —— 行动力：紧 ——
+  ['遇强则强', 'act', 0, '对手越强你越兴奋，一遇到比你强的人就秒变战神。', '遇到强手就瞬间开挂，遇到弱对手反而提不起劲'],
+  ['强迫症', 'act', 0, '事情不立刻做完，心里就像有一百只蚂蚁在爬。', '事情必须当场做完才睡得着'],
+  ['完美主义', 'act', 0, '容不得一点瑕疵，达不到理想状态宁愿不开始。', '对自己的作品挑剔到近乎苛刻'],
+  ['吹毛求疵', 'act', 0, '细节雷达常开，一个标点错位都逃不过你的眼睛。', '一眼就能揪出别人看不到的小瑕疵'],
+  ['卷王附体', 'act', 0, '别人下班你加班，主要是怕自己落后一步。', '看到别人努力就浑身不自在，忍不住也要再卷一点'],
+  // —— 行动力：松 ——
+  ['极度慕强', 'act', 1, '在你眼中，所有人都比你强，所以你永远谦卑到尘埃里。', '看谁都像大佬，永远觉得自己是菜鸟'],
+  ['薛定谔的肝', 'act', 1, '死线之前绝不动手，一旦启动效率爆表。', '死线前一直装死，死线一到瞬间爆肝'],
+  ['差不多先生', 'act', 1, '差不多得了，没必要较真，能交差就行。', '觉得"差不多就行"，懒得再多较真一分'],
+  ['间歇摆烂', 'act', 1, '认真三分钟，然后必须休息三小时来抚慰自己。', '努力三分钟就要躺三小时回血'],
+  ['得过且过', 'act', 1, '口头禅是"都行、可以、没关系"，能躺着绝不坐着。', '对什么都说"都行"，能躺着绝不坐着'],
+  // —— 社交场：外放 ——
+  ['社交悍匪', 'soc', 0, '跟谁都能称兄道弟，连路边的狗都能聊上两句。', '跟谁都能五分钟混熟，自来熟拉满'],
+  ['气氛组组长', 'soc', 0, '有你在，场子绝对冷不了。', '走到哪儿都自带热场 BGM'],
+  ['杠精转世', 'soc', 0, '看到不同观点 DNA 就动，不反驳两句浑身难受。', '听到不同意见就忍不住想杠两句'],
+  ['真实毒舌', 'soc', 0, '说话直戳痛处，句句扎心，主打一个真实。', '一开口就一针见血，扎心但有道理'],
+  ['八卦雷达', 'soc', 0, '消息灵通，哪里有瓜哪里就有你。', '哪里有瓜就往哪里凑，消息比新闻还快'],
+  // —— 社交场：内收 ——
+  ['重度社恐', 'soc', 1, '网上重拳出击，现实里点个菜都要做十分钟心理建设。', '现实里点个外卖都要先做心理建设'],
+  ['慢热体质', 'soc', 1, '建立信任需要极长时间，但一旦交心就是一辈子。', '要很久很久才肯真正信任一个人'],
+  ['讨好型人格', 'soc', 1, '总想让所有人满意，唯独委屈了自己。', '总在想怎么让所有人都满意'],
+  ['虚假热情', 'soc', 1, '表面笑嘻嘻，心里已经默默想下班，职业假笑大师。', '脸上笑嘻嘻，心里早就想下班'],
+  ['两耳不闻', 'soc', 1, '事不关己高高挂起，外界再乱与我无关。', '事不关己高高挂起，谁家的瓜都不想吃'],
+  // —— 情绪面：稳 ——
+  ['没心没肺', 'emo', 0, '天大的烦恼睡一觉就忘，绝不内耗自己。', '再大的烦恼睡一觉就忘'],
+  ['情绪稳定', 'emo', 0, '泰山崩于前而色不变，天塌下来当被子盖。', '天塌下来都面不改色'],
+  ['盲目乐观', 'emo', 0, '坚信车到山前必有路，天塌下来有高个子顶着。', '坚信车到山前必有路，从不提前焦虑'],
+  ['极度清醒', 'emo', 0, '绝不被任何人 PUA，永远知道自己要什么。', '永远清楚自己要什么，谁也骗不了'],
+  ['秒睡冠军', 'emo', 0, '沾枕头就着，雷打不动，谁也叫不醒。', '沾枕头就睡，任何烦恼都挡不住'],
+  // —— 情绪面：敏 ——
+  ['精神内耗', 'emo', 1, '白天笑嘻嘻，半夜网抑云，脑内能演完八十集连续剧。', '白天笑嘻嘻，半夜脑内演八十集连续剧'],
+  ['破防大师', 'emo', 1, '一点小事就能心态崩盘，眼泪说来就来。', '一点小事就能当场破防'],
+  ['危机意识', 'emo', 1, '总担心最坏的事情发生，每天都在为未来焦虑。', '总在为还没发生的事情提前焦虑'],
+  ['恋爱脑残', 'emo', 1, '一碰感情智商就降为零，恋爱大过天。', '一碰感情智商就清零'],
+  ['傲娇本娇', 'emo', 1, '嘴上说不要，身体却很诚实，口是心非第一名。', '嘴上说着不要，身体却很诚实'],
+  // —— 思维脑：理 ——
+  ['铁石心肠', 'mind', 0, '绝对理性，莫得感情，凡事只看利弊。', '凡事只看利弊，不谈感情'],
+  ['逻辑怪圈', 'mind', 0, '凡事都要讲逻辑，没有逻辑会难受。', '凡事都要讲逻辑，不讲逻辑就难受'],
+  ['上帝视角', 'mind', 0, '总能看透事情的本质，但为了合群选择闭嘴。', '早就看透了事情的本质，却选择默不作声'],
+  ['过目不忘', 'mind', 0, '能记住别人十年前说错的一句话。', '连别人十年前说过的一句话都记得'],
+  ['数据信徒', 'mind', 0, '没数据不开口，凡事先拉个表格再说。', '没有数据就不敢下结论'],
+  // —— 思维脑：感 ——
+  ['圣母心肠', 'mind', 1, '见不得任何人受苦，总想拯救苍生。', '见不得别人受苦，总想拯救全世界'],
+  ['未卜先知', 'mind', 1, '不讲逻辑全靠第六感，但准得让人害怕。', '全凭第六感做判断，偏偏准得吓人'],
+  ['假装糊涂', 'mind', 1, '其实什么都懂，但表面上装得比谁都傻。', '明明什么都懂，却装得比谁都傻'],
+  ['选择性失忆', 'mind', 1, '不重要的事情一秒忘，比如老板的叮嘱。', '重要的事转头就忘，无关的事记一辈子'],
+  ['脑洞黑洞', 'mind', 1, '想象力突破天际，能把平凡的事想得极度离谱。', '能把一件小事脑补成一部大片'],
+  // —— 生活观：强 ——
+  ['锦鲤附体', 'life', 0, '毫无道理地好运连连，抽卡必出金。', '总是毫无道理地好运连连，抽卡必出金'],
+  ['欲望都市', 'life', 0, '什么都想要，什么都想抓，野心勃勃。', '什么都想要，什么都想试'],
+  ['隐形控制欲', 'life', 0, '表面乖巧顺从，背地里想把一切都掌握在手里。', '表面乖巧随和，心里却想掌控全局'],
+  ['复仇使者', 'life', 0, '记仇能力一流，十年不晚，有仇必报。', '谁让你不爽你能记十年'],
+  ['表里如一', 'life', 0, '真诚无套路，心里想什么脸上就是什么。', '心里想什么脸上就写什么'],
+  // —— 生活观：弱 ——
+  ['反向毒奶', 'life', 1, '你看好谁谁倒霉，你唱衰谁谁起飞，买股票必跌。', '你看好的总翻车，你唱衰的反而起飞'],
+  ['佛系青年', 'life', 1, '看淡一切，随缘随分，不争不抢。', '看淡一切，随缘随分，不争不抢'],
+  ['随缘放手', 'life', 1, '控制不了的事干脆不控制，爱咋咋地。', '控制不了的事就干脆放手'],
+  ['立地成佛', 'life', 1, '前一秒吵得不可开交，后一秒就原谅了。', '吵完架转头就原谅，从不记仇'],
+  ['双面戏精', 'life', 1, '在不同的人面前秒切不同人格，演技派本派。', '在不同人面前秒切不同人格']
+];
+const T = RAW.map(([idiom, theme, pole, desc, short]) => ({ idiom, theme, pole, desc, short }));
+const byName = Object.fromEntries(T.map(t => [t.idiom, t]));
+const pool = (theme, pole) => T.filter(t => t.theme === theme && t.pole === pole);
+
+// 反差候选：同主题、相反极性，最强搭档排第一
+function oppositeList(t) {
+  const same = pool(t.theme, t.pole), opp = pool(t.theme, 1 - t.pole);
+  const partner = opp[same.indexOf(t)];
+  return [partner].concat(opp.filter(x => x !== partner));
+}
+
+// ===== 题库：每个选项对应 2~3 个天赋（各+1 分）=====
+const QS = [
+  { q: '公司空降了一位能力极强的新领导，你的真实心态是？', o: [
+    ['太棒了，跟着牛人能学到东西，我甘愿做小弟', ['极度慕强', '慢热体质', '讨好型人格']],
+    ['有点不服，想找机会证明我比他更强', ['遇强则强', '卷王附体', '欲望都市']],
+    ['关我什么事，按时发工资就行', ['差不多先生', '假装糊涂', '选择性失忆']],
+    ['先默默观察，看他能不能打破现有格局', ['上帝视角', '隐形控制欲', '数据信徒']] ] },
+  { q: '晚上 11 点，明天要交的方案你一个字还没写，你会？', o: [
+    ['慌得要死，但还是在刷手机，不到最后不动手', ['薛定谔的肝', '危机意识', '间歇摆烂']],
+    ['天塌不下来，先睡，明早再说', ['锦鲤附体', '秒睡冠军', '盲目乐观']],
+    ['疯狂脑补明天被骂的惨状，焦虑到失眠', ['精神内耗', '破防大师', '脑洞黑洞']],
+    ['戴上耳机进入心流，今晚必须搞定', ['强迫症', '完美主义', '卷王附体']] ] },
+  { q: '在一场全是陌生人的聚会上，你通常会？', o: [
+    ['主动出击，像老朋友一样跟人疯狂聊天', ['社交悍匪', '气氛组组长', '表里如一']],
+    ['躲在角落吃东西，祈祷没人注意到我', ['重度社恐', '慢热体质', '两耳不闻']],
+    ['安静观察，猜每个人的职业和性格', ['未卜先知', '上帝视角', '过目不忘']],
+    ['笑嘻嘻应付每个人，心里只想回家', ['虚假热情', '双面戏精', '假装糊涂']] ] },
+  { q: '朋友向你炫耀他刚买的股票暴涨了，你会？', o: [
+    ['心里暗想：这么高调，肯定马上要跌', ['反向毒奶', '危机意识', '真实毒舌']],
+    ['嘴上说恭喜，心里酸成柠檬精', ['傲娇本娇', '欲望都市', '虚假热情']],
+    ['冷静要来 K 线图，开始分析这家公司的财报', ['数据信徒', '铁石心肠', '逻辑怪圈']],
+    ['直接回怼：才赚这么点，看把你给能的', ['杠精转世', '真实毒舌', '遇强则强']] ] },
+  { q: '当你感到极度疲惫时，你最可能的状态是？', o: [
+    ['倒头就睡，雷打不动，谁也叫不醒', ['秒睡冠军', '情绪稳定', '没心没肺']],
+    ['身体很累，脑子还在反思白天哪句话说错了', ['精神内耗', '破防大师', '过目不忘']],
+    ['一边抱怨一边把事做完，还要检查三遍', ['吹毛求疵', '完美主义', '强迫症']],
+    ['彻底摆烂，爱咋咋地', ['间歇摆烂', '随缘放手', '得过且过']] ] },
+  { q: '和好朋友大吵一架之后，你会？', o: [
+    ['第二天就当没发生过，照常聊天', ['立地成佛', '没心没肺', '选择性失忆']],
+    ['把每一句难听的话都记在小本本上', ['复仇使者', '过目不忘', '双面戏精']],
+    ['主动道歉，哪怕自己没错', ['讨好型人格', '圣母心肠', '恋爱脑残']],
+    ['等对方先低头，嘴硬到底', ['傲娇本娇', '隐形控制欲', '杠精转世']] ] },
+  { q: '关于“命运”和“运气”，你更相信哪一种说法？', o: [
+    ['我的直觉准得吓人，很多事早就预感到了', ['未卜先知', '脑洞黑洞', '上帝视角']],
+    ['我就是天选之子，运气永远站在我这边', ['锦鲤附体', '盲目乐观', '欲望都市']],
+    ['凡是看好我的人，最后都会失望', ['反向毒奶', '极度慕强', '危机意识']],
+    ['命运掌握在自己手里，我只相信数据', ['数据信徒', '铁石心肠', '极度清醒']] ] },
+  { q: '路边有人明显需要帮助，但你不确定对方是不是骗子，你会？', o: [
+    ['二话不说上去帮忙，哪怕自己吃亏', ['圣母心肠', '表里如一', '讨好型人格']],
+    ['先判断真假，别被骗了', ['铁石心肠', '极度清醒', '逻辑怪圈']],
+    ['默默绕开，别人的事少掺和', ['两耳不闻', '佛系青年', '重度社恐']],
+    ['拍下来转头就发群里，一起讨论', ['八卦雷达', '气氛组组长', '双面戏精']] ] },
+  { q: '喜欢的人突然已读不回，你会？', o: [
+    ['疯狂脑补一百种原因，反复翻聊天记录', ['恋爱脑残', '脑洞黑洞', '精神内耗']],
+    ['你不回我也不回，看谁熬得过谁', ['傲娇本娇', '隐形控制欲', '复仇使者']],
+    ['无所谓，缘分到了自然会回', ['佛系青年', '随缘放手', '立地成佛']],
+    ['直接打电话问清楚', ['真实毒舌', '情绪稳定', '社交悍匪']] ] },
+  { q: '和人合租，你最可能是哪种室友？', o: [
+    ['洁癖担当：地板必须一尘不染', ['吹毛求疵', '强迫症', '完美主义']],
+    ['派对担当：天天带朋友回家嗨', ['社交悍匪', '气氛组组长', '八卦雷达']],
+    ['隐形人：一周说不了三句话', ['重度社恐', '两耳不闻', '慢热体质']],
+    ['甩手掌柜：碗放水池里，明天再洗', ['差不多先生', '薛定谔的肝', '得过且过']] ] }
+];
+
+const SPECIAL = {
+  '遇强则强|极度慕强': '你觉得自己是个菜鸟，看谁都像大佬；可一旦真动起手来，你又能把大佬按在地上摩擦。\n结论：你是一位极其凡尔赛的无敌伪装者。',
+  '社交悍匪|重度社恐': '网上你是社交悍匪，现实里你一开口就想逃跑。\n你的灵魂在舞池里蹦迪，肉体却缩在被窝里发抖。',
+  '强迫症|薛定谔的肝': '你既想"马上做完"，又想"死线再动手"。\n每个任务都要在你脑内开一场辩论会，最后永远是死线赢。',
+  '铁石心肠|圣母心肠': '嘴上说"只看利弊"，转头却默默给流浪猫买了猫粮。\n你不是冷，你只是不想被人看出来你心软。',
+  '没心没肺|精神内耗': '白天你是快乐小狗，凌晨三点你是哲学家。\n这两个你轮班上岗，从不加班费。',
+  '锦鲤附体|反向毒奶': '你自己抽卡必出金，可你一夸别人，别人就翻车。\n建议：好运留给自己，嘴巴留给沉默。',
+  '完美主义|差不多先生': '你对别人说"差不多就行"，对自己的作品却改到第十八版。\n你是双标界的艺术家。',
+  '杠精转世|讨好型人格': '当面你说"你说得对"，回家把反驳稿写了三千字。\n你不是杠，你只是把杠留给了备忘录。',
+  '上帝视角|假装糊涂': '你早就看透了一切，却选择装傻。\n因为你知道，清醒的人最孤独，装傻的人才睡得香。',
+  '真实毒舌|虚假热情': '嘴上全是"哇好棒"，心里全是"这也行"。\n你是职业假笑选手，偶尔会不小心说漏真话。',
+  '吹毛求疵|间歇摆烂': '你能在三秒内揪出别人的错别字，却三天不洗一次碗。\n严于律人，宽于律己，说的就是你。',
+  '极度清醒|恋爱脑残': '你分析别人的爱情头头是道，一轮到自己就智商清零。\n清醒是别人的，恋爱脑是你自己的。'
+};
+const CLOSERS = ['反差越大，越有魅力。', '建议保持，千万别被矫正。', '别怕矛盾，矛盾才是你的出厂设置。',
+  '能同时住下两个你，说明你的内心很宽敞。', '这届反差，稳了。', '朋友们看到的，只是冰山一角。'];
+
+// ===== 状态与流程 =====
+const state = { idx: 0, picks: [], reroll: 0, result: null };
+let locked = false;
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function startQuiz() {
+  state.idx = 0; state.picks = []; state.reroll = 0; state.result = null;
+  $('progress-container').style.display = 'block';
+  $('progress-bar').style.width = '0%';
+  show('quiz-screen'); renderQ();
+}
+function renderQ() {
+  const q = QS[state.idx]; locked = false;
+  $('qno').textContent = '第 ' + (state.idx + 1) + ' / ' + QS.length + ' 题';
+  $('question-title').textContent = q.q;
+  $('progress-bar').style.width = (state.idx / QS.length * 100) + '%';
+  const box = $('options-container'); box.innerHTML = '';
+  shuffle(q.o.map((o, i) => ({ text: o[0], i }))).forEach(opt => {
+    const div = document.createElement('div');
+    div.className = 'option'; div.textContent = opt.text;
+    div.addEventListener('click', () => pick(div, opt.i));
+    box.appendChild(div);
+  });
+}
+function pick(el, i) {
+  if (locked) return; locked = true;
+  el.classList.add('selected'); state.picks.push(i);
+  setTimeout(() => {
+    state.idx++;
+    if (state.idx < QS.length) renderQ();
+    else { $('progress-bar').style.width = '100%'; showLoading(); }
+  }, 220);
+}
+function showLoading() {
+  show('loading-screen');
+  const texts = ['正在扫描反差基因...', '寻找互相打架的天赋...', '生成你的双拼卡牌...'];
+  let k = 0;
+  const timer = setInterval(() => { k = (k + 1) % texts.length; $('loading-text').textContent = texts[k]; }, 700);
+  setTimeout(() => { clearInterval(timer); compute(); renderResult(); $('progress-container').style.display = 'none'; show('result-screen'); }, 2200);
+}
+
+function compute() {
+  const seed = state.picks.join('');
+  const score = {}; T.forEach(t => score[t.idiom] = 0);
+  state.picks.forEach((pi, qi) => QS[qi].o[pi][1].forEach(n => score[n]++));
+  const max = Math.max(...Object.values(score));
+  const tied = T.filter(t => score[t.idiom] === max);
+  // 同分时用答案做种子稳定选择：同样的答案永远得到同样的主天赋
+  tied.sort((a, b) => hash32(seed + a.idiom) - hash32(seed + b.idiom));
+  state.main = tied[0]; state.seed = seed;
+}
+function currentResult() {
+  const main = state.main, seed = state.seed;
+  const cands = oppositeList(main);
+  const h = hash32(seed + '#sub');
+  const base = (h % 10 < 4) ? 0 : 1 + ((h >>> 4) % 4);        // 40% 概率抽到最强搭档
+  const sub = cands[(base + state.reroll) % cands.length];
+  const key1 = main.idiom + '|' + sub.idiom, key2 = sub.idiom + '|' + main.idiom;
+  const closer = CLOSERS[hash32(seed + sub.idiom + '#c') % CLOSERS.length];
+  const text = SPECIAL[key1] || SPECIAL[key2] ||
+    ('别人眼里，你是【' + main.idiom + '】：' + main.short + '。\n' +
+     '但只有你自己知道，心里还住着一位【' + sub.idiom + '】：' + sub.short + '。\n' + closer);
+  const contrast = 72 + (hash32(seed + sub.idiom + '#ct') % 28);
+  const r = hash32(seed + sub.idiom + '#rar') % 100;
+  const rarity = r < 8 ? 'SSR' : r < 35 ? 'SR' : 'R';
+  return { main, sub, text, contrast, rarity };
+}
+function renderResult() {
+  const r = state.result = currentResult();
+  $('talent1-idiom').textContent = '【' + r.main.idiom + '】';
+  $('talent1-desc').textContent = r.main.desc;
+  $('theme1').textContent = THEMES[r.main.theme];
+  $('talent2-idiom').textContent = '【' + r.sub.idiom + '】';
+  $('talent2-desc').textContent = r.sub.desc;
+  $('theme2').textContent = THEMES[r.sub.theme];
+  $('combo-desc').textContent = r.text;
+  $('contrast').textContent = '反差指数 ' + r.contrast + '%';
+  const rar = $('rarity'); rar.textContent = r.rarity; rar.className = 'rarity ' + r.rarity;
+}
+function reroll() {
+  state.reroll++;
+  const app = $('result-screen'); app.style.animation = 'none'; void app.offsetWidth; app.style.animation = '';
+  renderResult();
+}
+function restart() {
+  $('progress-container').style.display = 'none';
+  $('progress-bar').style.width = '0%';
+  show('start-screen');
+}
+
+// ===== 分享图 =====
+const FONT = '"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Heiti SC",sans-serif';
+function rr(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function wrap(ctx, text, maxW) {
+  const out = [];
+  String(text).split('\n').forEach(par => {
+    let line = '';
+    for (const ch of par) {
+      const t = line + ch;
+      if (ctx.measureText(t).width > maxW && line && !'。，、；：！？”’）》…'.includes(ch)) { out.push(line); line = ch; } else line = t;
+    }
+    out.push(line);
+  });
+  return out;
+}
+function drawCardH(r, H) {
+  const W = 750, cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0f0c29'); bg.addColorStop(.5, '#302b63'); bg.addColorStop(1, '#24243e');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(20,20,34,.88)'; rr(ctx, 40, 50, 670, H - 100, 36); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 2; ctx.stroke();
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  const tg = ctx.createLinearGradient(200, 0, 550, 0); tg.addColorStop(0, '#00f2fe'); tg.addColorStop(1, '#4facfe');
+  ctx.fillStyle = tg; ctx.font = 'bold 48px ' + FONT; ctx.fillText('反差天赋盲盒', W / 2, 140);
+  ctx.fillStyle = r.rarity === 'SSR' ? '#ffd34e' : r.rarity === 'SR' ? '#b79bff' : '#aab4ff';
+  ctx.font = 'bold 30px ' + FONT; ctx.fillText('稀有度 ' + r.rarity + ' · 反差指数 ' + r.contrast + '%', W / 2, 192);
+
+  function box(y, label, t) {
+    ctx.font = '27px ' + FONT;
+    const lines = wrap(ctx, t.desc, 560);
+    const h = 40 + 30 + 66 + lines.length * 42 + 22;
+    ctx.fillStyle = 'rgba(255,255,255,.06)'; rr(ctx, 75, y, 600, h, 22); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#7f8cff'; ctx.font = '24px ' + FONT; ctx.fillText(label, 105, y + 46);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#8a93b8'; ctx.fillText(THEMES[t.theme], 645, y + 46);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#00f2fe'; ctx.font = 'bold 50px ' + FONT; ctx.fillText('【' + t.idiom + '】', 105, y + 114);
+    ctx.fillStyle = '#c4c8d8'; ctx.font = '27px ' + FONT;
+    lines.forEach((l, i) => ctx.fillText(l, 105, y + 164 + i * 42));
+    return y + h;
+  }
+  let y = box(235, '👀 别人眼里的你', r.main);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#4facfe'; ctx.beginPath(); ctx.arc(W / 2, y + 34, 28, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#001'; ctx.font = 'bold 24px ' + FONT; ctx.fillText('VS', W / 2, y + 43);
+  y = box(y + 78, '🫥 只有你自己知道的你', r.sub);
+
+  y += 40;
+  ctx.font = '27px ' + FONT;
+  const lines = wrap(ctx, r.text, 560);
+  const ch = 70 + lines.length * 46 + 20;
+  ctx.fillStyle = 'rgba(79,172,254,.12)'; rr(ctx, 75, y, 600, ch, 20); ctx.fill();
+  ctx.fillStyle = '#4facfe'; ctx.fillRect(75, y + 10, 6, ch - 20);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#4facfe'; ctx.font = 'bold 29px ' + FONT; ctx.fillText('🔮 反差解析报告', 105, y + 50);
+  ctx.fillStyle = '#e6e8f2'; ctx.font = '27px ' + FONT;
+  lines.forEach((l, i) => ctx.fillText(l, 105, y + 104 + i * 46));
+
+  ctx.textAlign = 'center'; ctx.fillStyle = '#cfd6ff'; ctx.font = '25px ' + FONT;
+  ctx.fillText(CONFIG.brand || '来测测你体内两种天赋怎么打架', W / 2, H - 105);
+  ctx.fillStyle = '#7d86a8'; ctx.font = '20px ' + FONT; ctx.fillText('仅供娱乐 · 结果随机生成', W / 2, H - 70);
+  cv.endY = y + ch;
+  return cv;
+}
+function drawCard(r) {
+  const probe = drawCardH(r, 1900);
+  return drawCardH(r, Math.min(1900, probe.endY + 175));
+}
+function openShare() {
+  if (!state.result) return;
+  try {
+    $('share-img').src = drawCard(state.result).toDataURL('image/png');
+    $('share-mask').classList.add('show');
+  } catch (e) { alert('生成分享图失败，请截图保存～'); }
+}
+
+$('btn-start').addEventListener('click', startQuiz);
+$('btn-reroll').addEventListener('click', reroll);
+$('btn-share').addEventListener('click', openShare);
+$('btn-restart').addEventListener('click', restart);
+$('share-close').addEventListener('click', () => $('share-mask').classList.remove('show'));
+$('share-mask').addEventListener('click', e => { if (e.target.id === 'share-mask') $('share-mask').classList.remove('show'); });
+</script>
+</body>
+</html>

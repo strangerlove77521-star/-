@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffe6ec">
+<title>姓名缘分测试</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif; }
+body { background: linear-gradient(135deg, #fff1f4 0%, #ffe0ea 100%); color: #333; display: flex;
+    justify-content: center; align-items: center; min-height: 100vh; min-height: 100dvh; padding: 20px;
+    transition: background .8s ease; }
+body.theme-high { background: linear-gradient(135deg, #ffe6e6 0%, #ffc2d1 100%); }
+body.theme-mid  { background: linear-gradient(135deg, #fff0e6 0%, #ffd9b8 100%); }
+body.theme-low  { background: linear-gradient(135deg, #e8f5ff 0%, #bcdcff 100%); }
+
+#app { background: rgba(255,255,255,.96); width: 100%; max-width: 400px; border-radius: 24px;
+    box-shadow: 0 15px 35px rgba(0,0,0,.1); overflow: hidden; padding: 30px 25px 22px; }
+.screen { display: none; animation: fadeIn .5s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+.title { text-align: center; font-size: 24px; font-weight: bold; color: #ff4d6d; margin-bottom: 8px; }
+.subtitle { text-align: center; font-size: 14px; color: #888; margin-bottom: 24px; }
+.input-group { margin-bottom: 16px; }
+.input-group label { display: block; font-size: 14px; color: #ff4d6d; margin-bottom: 8px; font-weight: 600; }
+input { width: 100%; padding: 15px; border: 2px solid #ffe6e6; border-radius: 12px; font-size: 16px;
+    outline: none; transition: border-color .3s; background: #fffafb; }
+input:focus { border-color: #ff4d6d; }
+
+.chips { display: flex; gap: 8px; }
+.chip { flex: 1; text-align: center; padding: 11px 4px; border-radius: 12px; border: 2px solid #ffe6e6;
+    background: #fffafb; font-size: 14px; color: #888; cursor: pointer; transition: all .2s; user-select: none; }
+.chip.on { border-color: #ff4d6d; background: #fff0f3; color: #ff4d6d; font-weight: 700; }
+
+.btn { display: block; width: 100%; background: linear-gradient(90deg, #ff758c 0%, #ff7eb3 100%); color: #fff;
+    border: none; padding: 16px; font-size: 16px; font-weight: bold; border-radius: 12px; cursor: pointer;
+    transition: transform .2s; box-shadow: 0 5px 15px rgba(255,117,140,.4); text-align: center; margin-top: 10px; }
+.btn:active { transform: scale(.98); }
+.btn.ghost { background: #fff; color: #ff4d6d; border: 2px solid #ffc2d1; box-shadow: none; }
+
+.loading-container { text-align: center; padding: 50px 0; }
+.heart { width: 40px; height: 40px; background: #ff4d6d; position: relative; transform: rotate(-45deg);
+    margin: 0 auto 36px; animation: heartbeat 1.2s infinite; }
+.heart::before, .heart::after { content: ""; width: 40px; height: 40px; background: #ff4d6d; border-radius: 50%; position: absolute; }
+.heart::before { top: -20px; left: 0; }
+.heart::after { top: 0; left: 20px; }
+@keyframes heartbeat { 0%{transform:rotate(-45deg) scale(1)} 15%{transform:rotate(-45deg) scale(1.1)}
+    30%{transform:rotate(-45deg) scale(1)} 45%{transform:rotate(-45deg) scale(1.15)} 60%{transform:rotate(-45deg) scale(1)} }
+.loading-text { color: #ff4d6d; font-size: 16px; font-weight: 500; animation: blink 1.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+.names-display { text-align: center; font-size: 18px; color: #555; margin-bottom: 4px; font-weight: bold; word-break: break-all; }
+.rel-tag { text-align: center; font-size: 12px; color: #ff8fa3; margin-bottom: 16px; }
+.score-circle { width: 140px; height: 140px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+    margin: 0 auto 18px; box-shadow: 0 10px 20px rgba(0,0,0,.1); }
+.bg-high { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+.bg-mid  { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+.bg-low  { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
+.score-number { font-size: 48px; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,.15); }
+.score-number small { font-size: 22px; }
+.result-title { text-align: center; font-size: 22px; font-weight: bold; color: #ff4d6d; margin-bottom: 6px; }
+.result-quote { text-align: center; font-size: 13px; color: #c0869a; margin-bottom: 14px; font-style: italic; }
+.result-desc { text-align: center; font-size: 15px; line-height: 1.7; color: #666; margin-bottom: 18px; padding: 0 6px; }
+
+.dims { background: #fff7f9; border-radius: 14px; padding: 14px 14px 6px; margin-bottom: 16px; }
+.dim { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; color: #777; }
+.dim span.n { width: 72px; flex-shrink: 0; }
+.dim .bar { flex: 1; height: 8px; background: #ffe3ea; border-radius: 4px; overflow: hidden; }
+.dim .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #ff9eb5, #ff4d6d); border-radius: 4px; transition: width 1s ease; }
+.dim span.v { width: 34px; text-align: right; color: #ff4d6d; font-weight: 600; }
+
+.disclaimer { text-align: center; font-size: 11px; color: #bbb; margin-top: 16px; }
+
+#share-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.78); z-index: 99;
+    flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+#share-mask.show { display: flex; }
+#share-img { max-width: 100%; max-height: 78vh; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+#share-mask p { color: #fff; font-size: 14px; margin: 14px 0 10px; }
+#share-mask button { background: #fff; border: none; border-radius: 20px; padding: 9px 26px; font-size: 14px; color: #ff4d6d; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="screen active" id="input-screen">
+    <div class="title">姓名缘分测试 💖</div>
+    <div class="subtitle">输入两个名字，看看你们的缘分有多深</div>
+
+    <div class="input-group">
+      <label>你的名字</label>
+      <input type="text" id="name1" placeholder="请输入名字（如：张三）" maxlength="10" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label>TA 的名字</label>
+      <input type="text" id="name2" placeholder="请输入名字（如：李四）" maxlength="10" autocomplete="off">
+    </div>
+    <div class="input-group">
+      <label>你们的关系</label>
+      <div class="chips">
+        <div class="chip on" data-rel="love">💕 恋人 / 暗恋</div>
+        <div class="chip" data-rel="friend">🤝 朋友</div>
+        <div class="chip" data-rel="work">💼 同事</div>
+      </div>
+    </div>
+    <button class="btn" id="btn-start">开始测算</button>
+    <div class="disclaimer">本测试仅供娱乐，结果由名字随机生成，请勿当真 😉</div>
+  </div>
+
+  <div class="screen" id="loading-screen">
+    <div class="loading-container">
+      <div class="heart"></div>
+      <div class="loading-text" id="loading-text">正在翻阅三生石...</div>
+    </div>
+  </div>
+
+  <div class="screen" id="result-screen">
+    <div class="names-display" id="result-names"></div>
+    <div class="rel-tag" id="rel-tag"></div>
+    <div class="score-circle" id="score-circle"><div class="score-number"><span id="score-val">0</span><small>%</small></div></div>
+    <div class="result-title" id="result-title"></div>
+    <div class="result-quote" id="result-quote"></div>
+    <div class="result-desc" id="result-desc"></div>
+    <div class="dims" id="dims"></div>
+    <button class="btn" id="btn-share">📸 生成分享图</button>
+    <button class="btn ghost" id="btn-restart">再测一对</button>
+    <div class="disclaimer">本测试仅供娱乐，结果由名字随机生成，请勿当真 😉</div>
+  </div>
+</div>
+
+<div id="share-mask">
+  <img id="share-img" alt="分享图">
+  <p>长按图片保存，发给 TA 看看吧～</p>
+  <button id="share-close">关闭</button>
+</div>
+
+<script>
+// ===== 可自定义配置 =====
+const CONFIG = {
+  brand: ""   // 例如 "小红书 @你的昵称"，会显示在分享图底部；留空则显示默认文案
+};
+
+const $ = id => document.getElementById(id);
+const SCREENS = ['input-screen', 'loading-screen', 'result-screen'];
+function show(id) { SCREENS.forEach(s => $(s).classList.toggle('active', s === id)); window.scrollTo(0, 0); }
+
+// ===== 稳定哈希：同样的两个名字，无论顺序都得到同样的结果 =====
+function hash32(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  h ^= h >>> 16; h = Math.imul(h, 2246822507) >>> 0;
+  h ^= h >>> 13; h = Math.imul(h, 3266489909) >>> 0;
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+const norm = s => s.replace(/\s+/g, '').toLowerCase();
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+const REL = {
+  love:   { label: '💕 恋人 / 暗恋' },
+  friend: { label: '🤝 朋友' },
+  work:   { label: '💼 同事' }
+};
+const DIM_NAMES = ['默契度', '心动值', '相处舒适', '长久指数'];
+
+const TIERS = [
+  { min: 90, title: '天作之合 💖', theme: 'theme-high', circle: 'bg-high', grad: ['#ff9a9e', '#fad0c4'],
+    quotes: ['兜兜转转，终是你。', '这缘分，盖了章的。', '连星星都在帮你们凑对。'],
+    text: {
+      love:   '这是传说中的命中注定。你们一个眼神就懂对方，吵架也吵不过三分钟。请好好珍惜，别让这段缘分溜走。',
+      friend: '你们是"一人一半大脑"的黄金搭档，做什么都默契满分。这样的朋友，一辈子遇到一两个就够了。',
+      work:   '同事界的天选 CP！分工不用说，配合不用教，这个组合放在哪个项目里都能封神。' } },
+  { min: 75, title: '灵魂搭子 💞', theme: 'theme-high', circle: 'bg-high', grad: ['#ffb6c1', '#ffd6e0'],
+    quotes: ['默契这东西，装不出来。', '你一抬眼，我就懂了。', '有你在，日子都顺了几分。'],
+    text: {
+      love:   '相处起来轻松又自在，常常能猜到对方在想什么。继续保持沟通，感情会越来越稳。',
+      friend: '聊得来、玩得来、靠得住，是那种深夜随时能打电话的好朋友。',
+      work:   '合作起来顺风顺水，彼此补位，是团队里让人放心的搭档。' } },
+  { min: 60, title: '欢喜冤家 ⚡', theme: 'theme-mid', circle: 'bg-mid', grad: ['#f6d365', '#fda085'],
+    quotes: ['不打不相识，越吵越亲密。', '嘴上嫌弃，心里在意。', '火花四溅，才叫生活。'],
+    text: {
+      love:   '有火花也有火药味，属于相爱相杀型。吵吵闹闹，其实是你们表达在乎的方式。',
+      friend: '互相吐槽、互相嫌弃，却又谁都离不开谁，典型的欢喜冤家。',
+      work:   '思路常常不一致，但碰撞出的点子往往最出彩。多沟通，你们就是王炸组合。' } },
+  { min: 45, title: '慢热良缘 🍃', theme: 'theme-mid', circle: 'bg-mid', grad: ['#fbc687', '#f9a8a0'],
+    quotes: ['好饭不怕晚，好缘不怕慢。', '日久见人心，时间会给答案。', '慢慢来，比较快。'],
+    text: {
+      love:   '这段缘分需要时间发酵。刚开始可能觉得对方"也就那样"，越相处越能发现 TA 的闪光点。',
+      friend: '属于越处越舒服的慢热型友谊，别着急，时间会证明一切。',
+      work:   '前期需要一点磨合，等熟悉了彼此的节奏，你们会是稳定可靠的工作伙伴。' } },
+  { min: 0, title: '平行相遇 ☁️', theme: 'theme-low', circle: 'bg-low', grad: ['#a1c4fd', '#c2e9fb'],
+    quotes: ['缘分是门玄学，保持好奇就好。', '山水有相逢，来日方长。', '不强求，也不辜负。'],
+    text: {
+      love:   '你们像是不同频道的两个人，需要多一点耐心与理解。不过缘分这种事，谁说得准呢？',
+      friend: '交集不算多，但保持一点距离反而更容易看到彼此的优点，做个轻松的点头之交也不错。',
+      work:   '风格差异比较大，建议明确分工、减少拉扯，各自发光也很好。' } }
+];
+const MIRROR = { title: '镜像灵魂 🪞', theme: 'theme-high', circle: 'bg-high', grad: ['#ff9a9e', '#fecfef'],
+  quotes: ['你遇见了另一个自己。'],
+  text: { love: '名字一模一样？这是"平行宇宙的你"撞上了你。是缘分，还是命运开的玩笑？',
+          friend: '名字一模一样，你们大概是同一种快乐的两个版本，凑在一起就是双倍吵闹。',
+          work: '名字一模一样，工作风格大概也像得出奇。小心撞车，也别忘了互相补位。' } };
+
+let relation = 'love';
+let last = null;
+
+function compute(n1, n2, rel) {
+  const a = norm(n1), b = norm(n2);
+  const key = [a, b].sort().join('|');
+  const same = a === b;
+  let score = same ? 100 : 28 + (hash32(key + '#score') % 72);   // 28 ~ 99
+  const tier = same ? MIRROR : TIERS.find(t => score >= t.min);
+  const dims = DIM_NAMES.map((n, i) => ({
+    name: n,
+    value: same ? 100 - (hash32(key + '#d' + i) % 4) : clamp(score + (hash32(key + '#d' + i) % 25) - 12, 18, 99)
+  }));
+  const quote = tier.quotes[hash32(key + '#q') % tier.quotes.length];
+  return { n1, n2, rel, score, tier, dims, quote, text: tier.text[rel] };
+}
+
+function bindUI() {
+  document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
+    relation = c.dataset.rel;
+    document.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c));
+  }));
+  $('btn-start').addEventListener('click', startTest);
+  $('btn-restart').addEventListener('click', restart);
+  $('btn-share').addEventListener('click', openShare);
+  $('share-close').addEventListener('click', () => $('share-mask').classList.remove('show'));
+  $('share-mask').addEventListener('click', e => { if (e.target.id === 'share-mask') $('share-mask').classList.remove('show'); });
+  $('name1').addEventListener('keydown', e => { if (e.key === 'Enter') $('name2').focus(); });
+  $('name2').addEventListener('keydown', e => { if (e.key === 'Enter') startTest(); });
+}
+
+let busy = false;
+function startTest() {
+  if (busy) return;
+  const n1 = $('name1').value.trim(), n2 = $('name2').value.trim();
+  if (!n1 || !n2) { alert('请把两个名字都填完整哦~'); return; }
+  busy = true;
+  document.body.className = '';
+  show('loading-screen');
+  const texts = ['正在翻阅三生石...', '计算灵魂契合度...', '正在解析前世今生...', '缘分结果马上揭晓...'];
+  let i = 0;
+  const timer = setInterval(() => { i = (i + 1) % texts.length; $('loading-text').textContent = texts[i]; }, 600);
+  setTimeout(() => {
+    clearInterval(timer);
+    last = compute(n1, n2, relation);
+    render(last);
+    busy = false;
+  }, 2300);
+}
+
+function render(r) {
+  document.body.className = r.tier.theme;
+  $('score-circle').className = 'score-circle ' + r.tier.circle;
+  $('result-names').textContent = r.n1 + ' & ' + r.n2;
+  $('rel-tag').textContent = REL[r.rel].label;
+  $('result-title').textContent = r.tier.title;
+  $('result-quote').textContent = '“' + r.quote + '”';
+  $('result-desc').textContent = r.text;
+  $('dims').innerHTML = r.dims.map(d =>
+    '<div class="dim"><span class="n">' + d.name + '</span><div class="bar"><i data-w="' + d.value + '"></i></div><span class="v">' + d.value + '</span></div>'
+  ).join('');
+  show('result-screen');
+  // 分数滚动 + 进度条动画
+  const el = $('score-val'), t0 = performance.now(), dur = 1100;
+  (function tick(t) {
+    const p = Math.min(1, (t - t0) / dur);
+    el.textContent = Math.round(r.score * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(tick);
+  })(t0);
+  setTimeout(() => document.querySelectorAll('.bar i').forEach(i => i.style.width = i.dataset.w + '%'), 80);
+}
+
+function restart() {
+  $('name1').value = ''; $('name2').value = '';
+  document.body.className = '';
+  show('input-screen');
+}
+
+// ===== 分享图（Canvas 绘制，无需任何外部库）=====
+const FONT = '"PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Heiti SC",sans-serif';
+function rr(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function wrap(ctx, text, maxW) {
+  const lines = []; let line = '';
+  for (const ch of text) {
+    const t = line + ch;
+    if (ctx.measureText(t).width > maxW && line && !'。，、；：！？”’）》…'.includes(ch)) { lines.push(line); line = ch; } else line = t;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+function drawCard(r) {
+  const W = 750, H = 1180, cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, r.tier.grad[0]); bg.addColorStop(1, r.tier.grad[1]);
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  ctx.fillStyle = 'rgba(255,255,255,.94)'; rr(ctx, 45, 55, 660, 1010, 40); ctx.fill();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+
+  ctx.fillStyle = '#ff4d6d'; ctx.font = 'bold 32px ' + FONT; ctx.fillText('姓名缘分测试 💖', W / 2, 130);
+
+  let fs = 46; const names = r.n1 + ' & ' + r.n2;
+  ctx.font = 'bold ' + fs + 'px ' + FONT;
+  while (ctx.measureText(names).width > 580 && fs > 24) { fs -= 2; ctx.font = 'bold ' + fs + 'px ' + FONT; }
+  ctx.fillStyle = '#444'; ctx.fillText(names, W / 2, 205);
+  ctx.fillStyle = '#ff8fa3'; ctx.font = '24px ' + FONT; ctx.fillText(REL[r.rel].label, W / 2, 245);
+
+  const cg = ctx.createLinearGradient(260, 280, 490, 510);
+  cg.addColorStop(0, r.tier.grad[0]); cg.addColorStop(1, r.tier.grad[1]);
+  ctx.fillStyle = cg; ctx.beginPath(); ctx.arc(W / 2, 395, 115, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 96px ' + FONT; ctx.fillText(String(r.score), W / 2 - 14, 428);
+  ctx.font = 'bold 40px ' + FONT; ctx.fillText('%', W / 2 + 84, 428);
+
+  ctx.fillStyle = '#ff4d6d'; ctx.font = 'bold 50px ' + FONT; ctx.fillText(r.tier.title, W / 2, 598);
+  ctx.fillStyle = '#c0869a'; ctx.font = 'italic 26px ' + FONT; ctx.fillText('“' + r.quote + '”', W / 2, 650);
+
+  ctx.fillStyle = '#666'; ctx.font = '28px ' + FONT;
+  const lines = wrap(ctx, r.text, 560);
+  let y = 715;
+  lines.slice(0, 5).forEach(l => { ctx.fillText(l, W / 2, y); y += 46; });
+
+  y = Math.max(y + 14, 905);
+  ctx.textAlign = 'left';
+  r.dims.forEach(d => {
+    ctx.fillStyle = '#888'; ctx.font = '25px ' + FONT; ctx.fillText(d.name, 100, y);
+    ctx.fillStyle = '#ffe3ea'; rr(ctx, 260, y - 20, 300, 16, 8); ctx.fill();
+    ctx.fillStyle = '#ff4d6d'; rr(ctx, 260, y - 20, Math.max(16, 300 * d.value / 100), 16, 8); ctx.fill();
+    ctx.fillStyle = '#ff4d6d'; ctx.font = 'bold 25px ' + FONT; ctx.fillText(String(d.value), 585, y);
+    y += 46;
+  });
+
+  ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.font = '24px ' + FONT;
+  ctx.fillText(CONFIG.brand || '扫码 / 搜索 · 测测你和 TA 的缘分', W / 2, 1115);
+  ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '20px ' + FONT;
+  ctx.fillText('仅供娱乐 · 结果随机生成', W / 2, 1150);
+  return cv;
+}
+function openShare() {
+  if (!last) return;
+  try {
+    $('share-img').src = drawCard(last).toDataURL('image/png');
+    $('share-mask').classList.add('show');
+  } catch (e) { alert('生成分享图失败，请截图保存～'); }
+}
+
+bindUI();
+</script>
+</body>
+</html>

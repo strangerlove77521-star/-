@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f4ebd9">
+<title>古代职场人格图鉴</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent;
+    font-family: "Songti SC", "STSong", "SimSun", "Noto Serif SC", "Source Han Serif SC", serif; }
+body { background-color: #f4ebd9; background-image: radial-gradient(#e5d9c5 1px, transparent 1px); background-size: 20px 20px;
+    color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; min-height: 100dvh; padding: 20px; }
+#app { background: #fcfaf5; width: 100%; max-width: 420px; border-radius: 4px; position: relative; overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,.08), inset 0 0 20px rgba(212,195,162,.3); padding: 44px 25px 24px; border: 1px solid #e0d4c3; }
+#app::after { content: "阅"; position: absolute; top: 10px; right: 12px; width: 28px; height: 28px; border: 2px solid #c0392b;
+    color: #c0392b; border-radius: 4px; display: flex; justify-content: center; align-items: center; font-size: 15px; font-weight: bold; opacity: .6; }
+.screen { display: none; animation: fadeIn .5s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.progress-container { width: 100%; height: 4px; background: #e8e0d5; border-radius: 2px; margin-bottom: 8px; display: none; }
+.progress-bar { height: 100%; background: #c0392b; border-radius: 2px; width: 0; transition: width .3s ease; }
+.qno { font-size: 12px; color: #a39a8b; margin-bottom: 14px; letter-spacing: 2px; }
+
+.start-title { text-align: center; font-size: 27px; font-weight: bold; color: #c0392b; margin-bottom: 14px; letter-spacing: 3px; }
+.start-subtitle { text-align: center; font-size: 14px; color: #7a7a7a; margin-bottom: 20px; line-height: 1.9; }
+.facts { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+.facts span { font-size: 12px; color: #a0522d; border: 1px solid #e0cbb3; border-radius: 3px; padding: 2px 9px; }
+.btn { display: block; width: 100%; background: #c0392b; color: #fff; border: none; padding: 15px; font-size: 16px; font-weight: bold;
+    border-radius: 6px; cursor: pointer; transition: background .2s; text-align: center; margin-top: 12px; letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(192,57,43,.2); }
+.btn:active { background: #a93226; transform: translateY(2px); }
+.btn.ghost { background: transparent; color: #c0392b; border: 1px solid #d9b9b4; box-shadow: none; }
+
+.question-title { font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 22px; line-height: 1.65; }
+.options { display: flex; flex-direction: column; gap: 12px; }
+.option { background: #fff; border: 1px solid #e0d4c3; padding: 14px; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all .2s; line-height: 1.55; color: #444; }
+.option:active { background: #fdf5ec; border-color: #d4a373; }
+.option.selected { background: #fdf5ec; border-color: #c0392b; color: #c0392b; font-weight: bold; }
+
+.loading-container { text-align: center; padding: 50px 0; }
+.ink-spot { width: 50px; height: 50px; background: #2c3e50; border-radius: 50%; margin: 0 auto 22px; animation: inkSpread 1.5s infinite alternate; opacity: .8; }
+@keyframes inkSpread { 0% { transform: scale(.8); opacity: .5; filter: blur(2px); } 100% { transform: scale(1.2); opacity: .9; filter: blur(4px); } }
+.loading-text { color: #7a7a7a; font-size: 15px; letter-spacing: 2px; }
+
+.result-header { text-align: center; margin-bottom: 14px; }
+.result-badge { display: inline-block; background: #2c3e50; color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 10px; letter-spacing: 1px; }
+.result-rank { font-size: 13px; color: #a0522d; letter-spacing: 2px; margin-bottom: 6px; }
+.result-title { font-size: 25px; font-weight: bold; color: #c0392b; margin-bottom: 8px; }
+.result-modern { font-size: 14px; color: #7a7a7a; font-style: italic; margin-bottom: 14px; }
+.result-quote { text-align: center; font-size: 16px; color: #b8803f; font-weight: bold; margin-bottom: 18px; padding: 10px; border-top: 1px dashed #e0d4c3; border-bottom: 1px dashed #e0d4c3; }
+.info-section { background: #fff; border: 1px solid #efe9df; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+.info-section h4 { font-size: 15px; color: #c0392b; margin-bottom: 8px; }
+.info-section p { font-size: 14px; color: #555; line-height: 1.7; }
+.info-section p + p { margin-top: 6px; }
+
+.mix .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; color: #6b6255; }
+.mix .row .n { width: 54px; flex-shrink: 0; }
+.mix .row .bar { flex: 1; height: 8px; background: #f0e8da; border-radius: 4px; overflow: hidden; }
+.mix .row .bar i { display: block; height: 100%; width: 0; background: #d9b27c; border-radius: 4px; transition: width .9s ease; }
+.mix .row.top .bar i { background: #c0392b; }
+.mix .row .v { width: 36px; text-align: right; color: #a0522d; }
+
+.relationship-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.relation-card { background: #fcfaf5; border: 1px solid #e0d4c3; padding: 10px; border-radius: 6px; text-align: center; }
+.relation-card span { display: block; font-size: 12px; color: #888; margin-bottom: 5px; }
+.relation-card strong { font-size: 15px; color: #2c3e50; }
+.disclaimer { text-align: center; font-size: 11px; color: #b5ab9b; margin-top: 14px; }
+
+#share-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 99; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+#share-mask.show { display: flex; }
+#share-img { max-width: 100%; max-height: 78vh; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+#share-mask p { color: #fff; font-size: 14px; margin: 14px 0 10px; }
+#share-mask button { background: #fff; border: none; border-radius: 20px; padding: 9px 26px; font-size: 14px; color: #c0392b; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="progress-container" id="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+
+  <div class="screen active" id="start-screen">
+    <div class="start-title">古代职场人格图鉴</div>
+    <div class="start-subtitle">
+      职场如朝堂，打工似修行。<br>
+      如果穿越回古代，你会在波诡云谲的官场中<br>
+      扮演何种角色？
+    </div>
+    <div class="facts"><span>12 道题</span><span>约 1 分钟</span><span>6 种人格</span></div>
+    <button class="btn" id="btn-start">开启你的仕途</button>
+    <div class="disclaimer">本测试仅供娱乐，不构成任何职业建议</div>
+  </div>
+
+  <div class="screen" id="quiz-screen">
+    <div class="qno" id="qno"></div>
+    <div class="question-title" id="question-title"></div>
+    <div class="options" id="options-container"></div>
+  </div>
+
+  <div class="screen" id="loading-screen">
+    <div class="loading-container">
+      <div class="ink-spot"></div>
+      <div class="loading-text" id="loading-text">正在翻阅古籍推演...</div>
+    </div>
+  </div>
+
+  <div class="screen" id="result-screen">
+    <div class="result-header">
+      <div class="result-badge">职场图鉴已生成</div>
+      <div class="result-rank" id="result-rank"></div>
+      <div class="result-title" id="result-title"></div>
+      <div class="result-modern" id="result-modern"></div>
+    </div>
+    <div class="result-quote" id="result-quote"></div>
+
+    <div class="info-section">
+      <h4>📜 人格画像</h4>
+      <p id="result-desc"></p>
+      <p id="result-proto"></p>
+    </div>
+    <div class="info-section">
+      <h4>⚔️ 职场优势 &amp; 避坑</h4>
+      <p id="result-strength"></p>
+      <p id="result-weakness"></p>
+      <p id="result-tip"></p>
+    </div>
+    <div class="info-section mix">
+      <h4>🧭 你的六面人格</h4>
+      <div id="mix"></div>
+      <p id="result-second" style="margin-top:6px"></p>
+    </div>
+    <div class="info-section">
+      <h4>🤝 职场关系图谱</h4>
+      <div class="relationship-grid">
+        <div class="relation-card"><span>天选搭档</span><strong id="result-partner">-</strong></div>
+        <div class="relation-card"><span>一生宿敌</span><strong id="result-enemy">-</strong></div>
+      </div>
+    </div>
+    <button class="btn" id="btn-share">📸 生成分享图</button>
+    <button class="btn ghost" id="btn-restart">再测一次</button>
+    <div class="disclaimer">本测试仅供娱乐，不构成任何职业建议</div>
+  </div>
+</div>
+
+<div id="share-mask">
+  <img id="share-img" alt="分享图">
+  <p>长按图片保存，发给同事看看他是哪一型～</p>
+  <button id="share-close">关闭</button>
+</div>
+
+<script>
+// ===== 可自定义配置 =====
+const CONFIG = {
+  brand: ""   // 例如 "小红书 @你的昵称"，会显示在分享图底部；留空则显示默认文案
+};
+
+const $ = id => document.getElementById(id);
+const SCREENS = ['start-screen', 'quiz-screen', 'loading-screen', 'result-screen'];
+function show(id) { SCREENS.forEach(s => $(s).classList.toggle('active', s === id)); window.scrollTo(0, 0); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// 类型：emperor 帝王 / minister 军师 / doctor 太医 / knight 侠客 / hermit 隐士 / merchant 商贾
+// 12 题 × 每题 4 个选项，每种人格恰好出现 8 次，保证每种结果同样容易测出
+const QS = [
+  { q: '早朝时，皇上突然点名让你对一项新政策发表意见，你会？', o: [
+    ['顺势提出一套宏大的治国方略，镇住全场', 'emperor'],
+    ['条理清晰地分析利弊，给出最稳妥的方案', 'minister'],
+    ['假装咳嗽，称今日身体抱恙，不便发言', 'hermit'],
+    ['先高呼“皇上圣明”，顺便摸清风向再说', 'merchant'] ] },
+  { q: '顶头上司（尚书大人）把别人搞砸的折子推到你头上让你背锅，你会？', o: [
+    ['当场拍桌对质，绝不吃这个哑巴亏', 'knight'],
+    ['先认下，暗中收集证据，找机会参他一本', 'minister'],
+    ['收点好处认了，官大一级压死人', 'merchant'],
+    ['笑着说没事，先安抚大家情绪，回头再慢慢处理', 'doctor'] ] },
+  { q: '遇到一个油盐不进的跨部门同僚，你会怎么推进工作？', o: [
+    ['拉着他直接去找皇上评理，强行推进', 'emperor'],
+    ['约他去校场比划比划，打服为止', 'knight'],
+    ['请他喝茶，耐心听他到底在担心什么', 'doctor'],
+    ['推不动就放着，等他自己暴雷，顺其自然', 'hermit'] ] },
+  { q: '你被外放到偏远穷苦的县城当知县，第一反应是？', o: [
+    ['这是个好机会，做出政绩早日调回京城', 'minister'],
+    ['正好微服私访，行侠仗义', 'knight'],
+    ['找个清闲差事，种种花，写写诗，岂不美哉', 'hermit'],
+    ['趁机经营人脉与生意，把当地特产运进京城', 'merchant'] ] },
+  { q: '团队内部为了分功劳吵得不可开交，你会？', o: [
+    ['一碗水端平，按实际贡献分配，谁闹就罚谁', 'emperor'],
+    ['拿出考核记录，用数据说话', 'minister'],
+    ['站出来安抚情绪，谁受伤了我去治愈谁', 'doctor'],
+    ['用利益交换与谈判，让双方都觉得自己赚了', 'merchant'] ] },
+  { q: '皇上（大老板）听信谗言，做了一个极其愚蠢的决定，你会？', o: [
+    ['站出来提出更好的方案，并主动接管这件事', 'emperor'],
+    ['冒死进谏，就算被拖出去打板子也要说', 'knight'],
+    ['随便吧，反正是他的江山，败光拉倒', 'hermit'],
+    ['表面迎合，暗地里按正确的方式去执行', 'merchant'] ] },
+  { q: '你的工作日常，更接近以下哪种状态？', o: [
+    ['案牍劳形，每天都在处理无尽的公文和细节', 'minister'],
+    ['到处安抚同僚，是大家的情绪垃圾桶', 'doctor'],
+    ['冲在一线，哪里有硬仗哪里就有我', 'knight'],
+    ['游山玩水，灵感一来就写出千古绝唱', 'hermit'] ] },
+  { q: '在朝堂上，你最想结交的是哪一位？', o: [
+    ['雄才大略、一言定乾坤的帝王', 'emperor'],
+    ['运筹帷幄、算无遗策的谋臣', 'minister'],
+    ['妙手仁心、人人敬重的太医', 'doctor'],
+    ['不问世事、洒脱自在的隐士', 'hermit'] ] },
+  { q: '如果能获得一种超能力，你最想要哪一种？', o: [
+    ['掌控全局，让所有人都听命于我', 'emperor'],
+    ['妙手回春，能治愈一切疾病和创伤', 'doctor'],
+    ['飞檐走壁，来去无踪，行侠仗义', 'knight'],
+    ['点石成金，拥有富可敌国的财富', 'merchant'] ] },
+  { q: '历经宦海沉浮，若能善终，你希望史书怎么评价你？', o: [
+    ['一代雄主，开疆拓土，万古流芳', 'emperor'],
+    ['治世能臣，鞠躬尽瘁，死而后已', 'minister'],
+    ['仗剑天涯，快意恩仇，逍遥自在', 'knight'],
+    ['货通天下，富可敌国，又乐善好施', 'merchant'] ] },
+  { q: '年终考核，同僚都在争一个升迁名额，你会？', o: [
+    ['默默把政绩整理成册，用成绩说话', 'minister'],
+    ['主动成人之美，我更在意大家相处和睦', 'doctor'],
+    ['让给别人，我更想早点回家种地', 'hermit'],
+    ['提前把上下关系都打点一遍，各路人情走起来', 'merchant'] ] },
+  { q: '边关告急，朝廷征召有才之士，你会？', o: [
+    ['挂帅出征，调度三军，运筹全局', 'emperor'],
+    ['随军做军医，救治受伤的将士', 'doctor'],
+    ['单骑冲阵，先杀他个痛快', 'knight'],
+    ['闭门谢客，山中不知世上事', 'hermit'] ] }
+];
+
+const ORDER = ['emperor', 'minister', 'doctor', 'knight', 'hermit', 'merchant'];
+const NAMES = { emperor: '帝王', minister: '军师', doctor: '太医', knight: '侠客', hermit: '隐士', merchant: '商贾' };
+
+const RESULTS = {
+  emperor: {
+    title: '帝王型 (The Emperor)', rank: '一品 · 内阁首辅', proto: '唐太宗李世民',
+    modern: '现代平替：CEO / 团队负责人 / 霸道总裁', quote: '“朕即天下，顺我者昌。”',
+    desc: '你是天生的掌控者。你有着极强的目标感和野心，不喜欢被规则束缚，更喜欢制定规则。在团队中，你通常是那个拍板做决定的人，有着不怒自威的气场。',
+    strength: '极强的领导力、大局观和抗压能力，能在乱局中迅速稳住阵脚。',
+    weakness: '有时过于独断专行，听不进他人意见。容易给下属画大饼，却忽略了他们需要的是真金白银。',
+    tip: '给下属发一次奖金，胜过画十次愿景。',
+    partner: '军师型 (互补)', enemy: '侠客型 (不服管)' },
+  minister: {
+    title: '军师型 (The Minister)', rank: '二品 · 军机参谋', proto: '诸葛亮',
+    modern: '现代平替：产品经理 / 战略分析师 / 核心骨干', quote: '“运筹帷幄之中，决胜千里之外。”',
+    desc: '你是团队里的最强大脑。你逻辑严密，思维缜密，凡事讲求数据和可行性。你讨厌无脑执行，更看重效率和结果。你是老板最依赖的智囊。',
+    strength: '深度思考能力、极强的逻辑分析能力和靠谱的执行力。',
+    weakness: '容易因为想得太多而内耗，或者因为别人太“笨”而暴躁。偶尔需要学会“睁一只眼闭一只眼”。',
+    tip: '不是每件事都要亲自盯，学会授权才能走得更远。',
+    partner: '帝王型 (互补)', enemy: '商贾型 (太油滑)' },
+  doctor: {
+    title: '太医型 (The Doctor)', rank: '三品 · 太医院使', proto: '孙思邈',
+    modern: '现代平替：HR / 运营支持 / 团队润滑剂', quote: '“心病还须心药医，打工不要太拼命。”',
+    desc: '你是职场里的治愈系。你情绪稳定，共情能力强，总能在别人焦虑崩溃时提供情绪价值。你不争不抢，但团队离了你就会立刻散架。',
+    strength: '高情商、极强的沟通安抚能力和团队凝聚力。',
+    weakness: '容易成为职场里的“老好人”，被塞很多不属于你的工作。要学会适当地“发疯”和拒绝。',
+    tip: '先把自己的情绪照顾好，再去治愈别人。',
+    partner: '商贾型 (互补)', enemy: '帝王型 (太强势)' },
+  knight: {
+    title: '侠客型 (The Knight)', rank: '四品 · 西域都护', proto: '班超（投笔从戎）',
+    modern: '现代平替：独立开发者 / 销售先锋 / 业务开拓者', quote: '“十步杀一人，千里不留行。”',
+    desc: '你是职场里的一匹孤狼。你向往自由，不喜欢被条条框框束缚，执行力爆表，遇到困难敢于硬刚。你不搞办公室政治，只凭实力说话。',
+    strength: '单兵作战能力极强，敢于打破常规，能啃下最硬的骨头。',
+    weakness: '有时过于冲动，不懂得圆滑变通，容易在无意中得罪人。需要学会“藏拙”和团队协作。',
+    tip: '再锋利的剑，也需要一个剑鞘。',
+    partner: '太医型 (安抚情绪)', enemy: '军师型 (规矩太多)' },
+  hermit: {
+    title: '隐士型 (The Hermit)', rank: '致仕 · 山中隐逸', proto: '陶渊明',
+    modern: '现代平替：资深摸鱼专员 / 自由职业者 / 技术极客', quote: '“采菊东篱下，悠然见南山。”',
+    desc: '你是职场里的一股清流。你深谙“打工而已，别太入戏”的道理。你不参与内卷，不站队，主打一个拿多少钱干多少事，情绪极其稳定，谁也 PUA 不了你。',
+    strength: '极佳的心态，抗压抗 PUA 能力满级，内心世界极其丰富。',
+    weakness: '容易显得缺乏进取心，偶尔会被边缘化。需要偶尔展露一下锋芒，以免被当成软柿子。',
+    tip: '偶尔亮一次剑，别人才知道你不是没有。',
+    partner: '侠客型 (欣赏你的洒脱)', enemy: '帝王型 (卷王之王)' },
+  merchant: {
+    title: '商贾型 (The Merchant)', rank: '三品 · 户部侍郎', proto: '范蠡（商圣）',
+    modern: '现代平替：商务拓展 / 公关 / 资源整合专家', quote: '“天下熙熙，皆为利来；天下攘攘，皆为利往。”',
+    desc: '你是职场里的人精。你情商极高，八面玲珑，擅长资源置换和利益最大化。你能在各方势力之间游刃有余，总能借力打力，用最小的成本办成最大的事。',
+    strength: '顶级的社交手腕、谈判能力和信息搜集能力。',
+    weakness: '有时会显得过于精明或不够真诚。在绝对的实力面前，你的套路可能会失效。',
+    tip: '真诚，才是最长期的复利。',
+    partner: '帝王型 (互惠互利)', enemy: '隐士型 (油盐不进)' }
+};
+
+// ===== 状态与流程 =====
+const state = { idx: 0, scores: null, firstHit: null, result: null };
+let locked = false;
+
+function startQuiz() {
+  state.idx = 0; state.scores = {}; state.firstHit = {}; state.result = null;
+  ORDER.forEach(k => state.scores[k] = 0);
+  $('progress-container').style.display = 'block';
+  $('progress-bar').style.width = '0%';
+  show('quiz-screen'); renderQ();
+}
+function renderQ() {
+  const q = QS[state.idx]; locked = false;
+  $('qno').textContent = '第 ' + (state.idx + 1) + ' / ' + QS.length + ' 问';
+  $('question-title').textContent = q.q;
+  $('progress-bar').style.width = (state.idx / QS.length * 100) + '%';
+  const box = $('options-container'); box.innerHTML = '';
+  shuffle(q.o.slice()).forEach(([text, type]) => {
+    const d = document.createElement('div');
+    d.className = 'option'; d.textContent = text;
+    d.addEventListener('click', () => pick(d, type));
+    box.appendChild(d);
+  });
+}
+function pick(el, type) {
+  if (locked) return; locked = true;
+  el.classList.add('selected');
+  state.scores[type]++;
+  if (state.firstHit[type] === undefined) state.firstHit[type] = state.idx;   // 同分时，以更早选中的类型为准（第一直觉）
+  setTimeout(() => {
+    state.idx++;
+    if (state.idx < QS.length) renderQ();
+    else { $('progress-bar').style.width = '100%'; showLoading(); }
+  }, 240);
+}
+function showLoading() {
+  show('loading-screen');
+  const texts = ['正在翻阅古籍推演...', '分析你的性格脉络...', '正在绘制职场图鉴...', '即将揭晓'];
+  let i = 0;
+  const timer = setInterval(() => { i = (i + 1) % texts.length; $('loading-text').textContent = texts[i]; }, 650);
+  setTimeout(() => { clearInterval(timer); renderResult(); }, 2200);
+}
+function ranking() {
+  return ORDER.slice().sort((a, b) =>
+    (state.scores[b] - state.scores[a]) ||
+    ((state.firstHit[a] === undefined ? 99 : state.firstHit[a]) - (state.firstHit[b] === undefined ? 99 : state.firstHit[b])));
+}
+function renderResult() {
+  const rank = ranking(), top = rank[0], second = rank[1], res = RESULTS[top];
+  const mix = rank.map(k => ({ k, name: NAMES[k] + '型', pct: Math.round(state.scores[k] / QS.length * 100) }));
+  state.result = { top, second, res, mix };
+  $('result-rank').textContent = res.rank;
+  $('result-title').textContent = res.title;
+  $('result-modern').textContent = res.modern;
+  $('result-quote').textContent = res.quote;
+  $('result-desc').textContent = res.desc;
+  $('result-proto').textContent = '🏯 历史原型：' + res.proto;
+  $('result-strength').innerHTML = '<b style="color:#27ae60">优势：</b>';
+  $('result-strength').appendChild(document.createTextNode(res.strength));
+  $('result-weakness').innerHTML = '<b style="color:#c0392b">避坑：</b>';
+  $('result-weakness').appendChild(document.createTextNode(res.weakness));
+  $('result-tip').innerHTML = '<b style="color:#b8803f">锦囊：</b>';
+  $('result-tip').appendChild(document.createTextNode(res.tip));
+  $('mix').innerHTML = mix.map((m, i) =>
+    '<div class="row' + (i === 0 ? ' top' : '') + '"><span class="n">' + m.name + '</span><div class="bar"><i data-w="' + m.pct + '"></i></div><span class="v">' + m.pct + '%</span></div>'
+  ).join('');
+  $('result-second').textContent = state.scores[second] > 0
+    ? '隐藏副人格：' + NAMES[second] + '型——关键时刻，它会悄悄接管你。' : '';
+  $('result-partner').textContent = res.partner;
+  $('result-enemy').textContent = res.enemy;
+  $('progress-container').style.display = 'none';
+  show('result-screen');
+  setTimeout(() => document.querySelectorAll('#mix .bar i').forEach(i => i.style.width = Math.max(2, i.dataset.w) + '%'), 80);
+}
+function restart() {
+  $('progress-container').style.display = 'none';
+  $('progress-bar').style.width = '0%';
+  show('start-screen');
+}
+
+// ===== 分享图 =====
+const FONT = '"Songti SC","STSong","SimSun","Noto Serif CJK SC","Noto Serif SC",serif';
+function wrap(ctx, text, maxW) {
+  const out = []; let line = '';
+  for (const ch of text) {
+    const t = line + ch;
+    if (ctx.measureText(t).width > maxW && line && !'。，、；：！？”’）》…'.includes(ch)) { out.push(line); line = ch; } else line = t;
+  }
+  if (line) out.push(line);
+  return out;
+}
+function drawCard(r) {
+  const W = 750, H = 1400, cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#f4ebd9'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#e5d9c5';
+  for (let x = 10; x < W; x += 20) for (let y = 10; y < H; y += 20) ctx.fillRect(x, y, 1.5, 1.5);
+  ctx.fillStyle = '#fcfaf5'; ctx.fillRect(45, 45, 660, 1310);
+  ctx.strokeStyle = '#d9c8aa'; ctx.lineWidth = 3; ctx.strokeRect(45, 45, 660, 1310);
+  ctx.strokeStyle = '#e8dcc6'; ctx.lineWidth = 1.5; ctx.strokeRect(62, 62, 626, 1276);
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#7a7a7a'; ctx.font = '26px ' + FONT; ctx.fillText('古代职场人格图鉴', W / 2, 130);
+  ctx.fillStyle = '#a0522d'; ctx.font = '28px ' + FONT; ctx.fillText(r.res.rank, W / 2, 200);
+  ctx.fillStyle = '#c0392b'; ctx.font = 'bold 60px ' + FONT; ctx.fillText(r.res.title.split(' ')[0], W / 2, 285);
+  ctx.fillStyle = '#7a7a7a'; ctx.font = 'italic 25px ' + FONT;
+  wrap(ctx, r.res.modern, 560).forEach((l, i) => ctx.fillText(l, W / 2, 335 + i * 38));
+
+  // 印章
+  ctx.save(); ctx.translate(590, 130); ctx.rotate(-0.12);
+  ctx.strokeStyle = '#c0392b'; ctx.fillStyle = '#c0392b'; ctx.globalAlpha = .75; ctx.lineWidth = 4;
+  ctx.strokeRect(-34, -34, 68, 68); ctx.font = 'bold 40px ' + FONT; ctx.fillText('阅', 0, 14); ctx.restore();
+
+  ctx.strokeStyle = '#e0d4c3'; ctx.setLineDash([8, 6]); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(100, 400); ctx.lineTo(650, 400); ctx.moveTo(100, 480); ctx.lineTo(650, 480); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#b8803f'; ctx.font = 'bold 29px ' + FONT;
+  const q = wrap(ctx, r.res.quote, 540); q.forEach((l, i) => ctx.fillText(l, W / 2, 452 + (i - (q.length - 1) / 2) * 38));
+
+  ctx.textAlign = 'left'; ctx.fillStyle = '#c0392b'; ctx.font = 'bold 29px ' + FONT; ctx.fillText('📜 人格画像', 100, 545);
+  ctx.fillStyle = '#555'; ctx.font = '26px ' + FONT;
+  let y = 592;
+  wrap(ctx, r.res.desc, 550).slice(0, 5).forEach(l => { ctx.fillText(l, 100, y); y += 42; });
+  ctx.fillStyle = '#a0522d'; ctx.fillText('🏯 历史原型：' + r.res.proto, 100, y + 8); y += 70;
+
+  ctx.fillStyle = '#c0392b'; ctx.font = 'bold 29px ' + FONT; ctx.fillText('🧭 你的六面人格', 100, y); y += 20;
+  r.mix.forEach((m, i) => {
+    y += 44;
+    ctx.fillStyle = '#6b6255'; ctx.font = '24px ' + FONT; ctx.fillText(m.name, 100, y);
+    ctx.fillStyle = '#f0e8da'; ctx.fillRect(205, y - 17, 340, 14);
+    ctx.fillStyle = i === 0 ? '#c0392b' : '#d9b27c'; ctx.fillRect(205, y - 17, Math.max(8, 340 * m.pct / 100), 14);
+    ctx.fillStyle = '#a0522d'; ctx.textAlign = 'right'; ctx.fillText(m.pct + '%', 650, y); ctx.textAlign = 'left';
+  });
+
+  ctx.textAlign = 'center'; ctx.fillStyle = '#7a7a7a'; ctx.font = '24px ' + FONT;
+  ctx.fillText('天选搭档：' + r.res.partner.split(' ')[0] + '　　一生宿敌：' + r.res.enemy.split(' ')[0], W / 2, 1250);
+  ctx.fillStyle = '#a0522d'; ctx.font = '25px ' + FONT;
+  ctx.fillText(CONFIG.brand || '来测测你在古代是哪种官场人格', W / 2, 1297);
+  ctx.fillStyle = '#b5ab9b'; ctx.font = '20px ' + FONT; ctx.fillText('仅供娱乐 · 不构成职业建议', W / 2, 1335);
+  return cv;
+}
+function openShare() {
+  if (!state.result) return;
+  try {
+    $('share-img').src = drawCard(state.result).toDataURL('image/png');
+    $('share-mask').classList.add('show');
+  } catch (e) { alert('生成分享图失败，请截图保存～'); }
+}
+
+$('btn-start').addEventListener('click', startQuiz);
+$('btn-share').addEventListener('click', openShare);
+$('btn-restart').addEventListener('click', restart);
+$('share-close').addEventListener('click', () => $('share-mask').classList.remove('show'));
+$('share-mask').addEventListener('click', e => { if (e.target.id === 'share-mask') $('share-mask').classList.remove('show'); });
+</script>
+</body>
+</html>
